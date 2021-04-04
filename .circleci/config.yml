@@ -1,19 +1,39 @@
 version: 2.1
 
 orbs:
-  cloudformation: orbss/aws-cloudformation@0.1.4
+  aws-cli: circleci/aws-cli@1.4.0
+
+jobs:
+  deploy-cfn:
+    parameters:
+      stack-name:
+        description: Name of the CloudFormation stack
+        type: string
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/setup
+      - run:
+          name: Deploy Cloudformation Template with new Docker image
+          command: |
+            aws cloudformation deploy \
+            --eks.yml \
+            --stack << parameters.eks-test >> \
+            --parameter-overrides ImageTag=${CIRCLE_SHA1}     
+    requires:
+      cfn-lint:
+        docker:
+          - image: cimg/python:3.9
+        steps:
+          - checkout
+          - run:
+              name: Validate CloudFormation template
+              command: pip install cfn-lint && cfn-lint eks.yml       
 
 workflows:
-  version: 2
-  stack-test:
-    jobs:
-      - cloudformation/create-stack:
-          stack-name: my-stack
-          git-url: https://github.com/my-pubic-repo.git
-          template-file-path: cloudformation-template-file-path.yaml
-          extra-arguments: --parameters ParameterKey=InstanceType,ParameterValue=t2.micro ParameterKey=KeyName,ParameterValue=circleci
-      - some-jobs
-      - cloudformation/delete-stack:
-          requires:
-            - cloudformation/create-stack
-          stack-name: my-stack
+  deploy:
+    - … # build image and push to ECR with ${CIRCLE_SHA1} tag
+    - deploy-cfn:
+      context:
+        - aws-12345-us-east-1
+      stack-name: eks-test

@@ -1,16 +1,25 @@
 Description: Testing EKS cluster
 
 Parameters:
+
   ClusterName:
     Description: Custom name of the cluster. Auto generated if you don't supply your own.
     Type: String
     AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$"
     Default: test
-Mappings:
-  Details:
-    CommonVariables:
-      VPCID: vpc-0b8ad3ab815f525e8
+
+  ImageTag:
+    Type: String
+    Description: tag of the docker image to deploy in this stack
+    Default: latest
+
+# Mappings:
+#   Details:
+#     CommonVariables:
+#       VPCID: vpc-0b8ad3ab815f525e8
+
 Resources:
+
   eksClusterRole:
     Type: AWS::IAM::Role
     Properties:
@@ -25,6 +34,7 @@ Resources:
             - sts:AssumeRole
       ManagedPolicyArns:
          - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+
   ElasticKubernetesCluster:
     Type: AWS::EKS::Cluster
     Properties:
@@ -36,6 +46,13 @@ Resources:
           - subnet-0f44800164bc4bd9e  #us-east-1a
           - subnet-096bbd3fb61dc3c77 #us-east-1b
       RoleArn: arn:aws:iam::396791034774:role/eks-testing
+
+  TaskDefMyApp:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: MyApp
+      ContainerDefinitions:
+        - Image: !Sub '12345.dkr.ecr.us-east-1.amazonaws.com/my-app:${ImageTag}'
 Outputs:
 
   RoleArn:
