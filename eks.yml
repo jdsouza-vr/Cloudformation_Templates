@@ -1,0 +1,45 @@
+Description: Testing EKS cluster
+
+Parameters:
+  ClusterName:
+    Description: Custom name of the cluster. Auto generated if you don't supply your own.
+    Type: String
+    AllowedPattern: "^[a-zA-Z][-a-zA-Z0-9]*$"
+    Default: test
+Mappings:
+  Details:
+    CommonVariables:
+      VPCID: vpc-0b8ad3ab815f525e8
+Resources:
+  eksClusterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+              - eks.amazonaws.com
+            Action:
+            - sts:AssumeRole
+      ManagedPolicyArns:
+         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+  ElasticKubernetesCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Ref ClusterName
+      ResourcesVpcConfig: 
+        SecurityGroupIds:
+          - sg-0b4764156ca90d395
+        SubnetIds:
+          - subnet-0f44800164bc4bd9e  #us-east-1a
+          - subnet-096bbd3fb61dc3c77 #us-east-1b
+      RoleArn: arn:aws:iam::396791034774:role/eks-testing
+Outputs:
+
+  RoleArn:
+    Description: The role that Amazon EKS will use to create AWS resources for Kubernetes clusters
+    Value: !GetAtt eksClusterRole.Arn
+    Export:
+      Name: !Sub "${AWS::StackName}-RoleArn"
