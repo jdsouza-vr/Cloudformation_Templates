@@ -1,0 +1,9 @@
+project:
+  name: taskcat-test
+  regions:
+    - us-east-1
+  
+tests:
+  eks-test:
+    template: eks.yml
+  
