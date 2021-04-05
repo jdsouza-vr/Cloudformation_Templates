@@ -20,15 +20,15 @@ jobs:
             --eks.yml \
             --stack << parameters.eks-test >> \
             --parameter-overrides ImageTag=${CIRCLE_SHA1}     
-    requires:
-      cfn-lint:
-        docker:
-          - image: cimg/python:3.9
-        steps:
-          - checkout
-          - run:
-              name: Validate CloudFormation template
-              command: pip install cfn-lint && cfn-lint eks.yml       
+    # requires:
+    #   cfn-lint:
+    #     docker:
+    #       - image: cimg/python:3.9
+    #     steps:
+    #       - checkout
+    #       - run:
+    #           name: Validate CloudFormation template
+    #           command: pip install cfn-lint && cfn-lint eks.yml       
 
 workflows:
   deploy:
